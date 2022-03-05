@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -36,7 +37,7 @@ class ApiCategory extends TestCase
             ]);
     }
 
-    public function test_showCategory()
+    public function test_showCategories()
     {
         Category::factory()
             ->count(5)
@@ -94,5 +95,20 @@ class ApiCategory extends TestCase
             ->assertStatus(204);
 
         $this->assertNull(Category::query()->find($category->id));
+    }
+
+    public function test_deleteCategoryNotEmpty()
+    {
+        /** @var Category $category */
+        $category = Category::factory()->create();
+        $product = Product::factory()->create();
+        $category->products()->sync($product);
+
+        $response = $this->deleteJson("/api/v1/categories/{$category->id}");
+
+        $response
+            ->assertStatus(400);
+
+        $this->assertNotNull(Category::query()->find($category->id));
     }
 }

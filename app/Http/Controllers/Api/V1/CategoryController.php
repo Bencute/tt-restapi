@@ -28,14 +28,14 @@ class CategoryController extends Controller
 
     public function update(CategoryRequest $request, Category $category)
     {
-        $category->update($request->all());
+        $category->update($request->validated());
         return response()->json(new CategoryResource($category));
     }
 
     public function destroy(Category $category)
     {
-        $category->delete();
-
+        abort_if($category->products()->count(), 400, 'Category not empty');
+        $category->deleteOrFail();
         return response()->json(null, 204);
     }
 }
