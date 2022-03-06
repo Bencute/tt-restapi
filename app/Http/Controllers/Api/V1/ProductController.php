@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Filters\Api\V1\ProductFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ProductCreateRequest;
 use App\Http\Requests\Api\V1\ProductUpdateRequest;
@@ -9,7 +10,6 @@ use App\Http\Requests\Api\V1\ApiProductFilterRequest;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Builder;
 
 class ProductController extends Controller
 {
@@ -28,51 +28,9 @@ class ProductController extends Controller
      *  'name_category': {string}
      * }
      */
-    public function index(ApiProductFilterRequest $request)
+    public function index(ApiProductFilterRequest $request, ProductFilter $filter)
     {
-        $query = Product::query();
-
-        $query->when(
-            $request->validated('name'),
-            fn(Builder $query, $value) => $query->where('name', 'like', '%'.$value.'%')
-        );
-
-        $query->when(
-            $request->validated('price_from'),
-            fn(Builder $query, $value) => $query->where('price', '>=', $value)
-        );
-
-        $query->when(
-            $request->validated('price_to'),
-            fn(Builder $query, $value) => $query->where('price', '<=', $value)
-        );
-
-        $query->when(
-            $request->has('published'),
-            fn(Builder $query) => $query->where('published', $request->validated('published')),
-        );
-
-        $query->when(
-            $request->validated('deleted'),
-            fn(Builder $query) => $query->withTrashed()
-        );
-
-        $query->when(
-            $request->validated('id_categories'),
-            fn(Builder $query, $value) => $query->whereHas(
-                'categories',
-                fn(Builder $query) => $query->whereIn('id', $value)
-            )
-        );
-
-        $query->when(
-            $request->validated('name_category'),
-            fn(Builder $query, $value) => $query->whereHas(
-                'categories',
-                fn(Builder $query) => $query->where('name', 'like', '%'.$value.'%')
-            )
-        );
-
+        $query = $filter->apply(Product::query());
         return response()->json(new ProductCollection($query->get()));
     }
 
