@@ -78,13 +78,11 @@ class ApiProduct extends TestCase
         $response
             ->assertStatus(200)
             ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'id',
-                        'name',
-                        'price',
-                        'published',
-                    ]
+                '*' => [
+                    'id',
+                    'name',
+                    'price',
+                    'published',
                 ]
             ]);
     }

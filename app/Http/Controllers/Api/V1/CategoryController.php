@@ -12,7 +12,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        return new CategoryCollection(Category::all());
+        return response()->json(new CategoryCollection(Category::all()));
     }
 
     public function store(CategoryRequest $request)
@@ -28,7 +28,7 @@ class CategoryController extends Controller
 
     public function update(CategoryRequest $request, Category $category)
     {
-        $category->update($request->validated());
+        $category->updateOrFail($request->validated());
         return response()->json(new CategoryResource($category));
     }
 

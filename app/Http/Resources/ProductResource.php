@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Product;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
@@ -14,11 +15,10 @@ class ProductResource extends JsonResource
      */
     public function toArray($request)
     {
+        /** @var Product $this */
         return array_merge(
-            parent::toArray($request),
-            [
-                'categories' => new CategoryCollection($this->categories),
-            ]
+            $this->attributesToArray(),
+            ['categories' => new CategoryCollection($this->categories)]
         );
     }
 }
