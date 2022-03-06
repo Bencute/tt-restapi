@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
@@ -136,9 +135,8 @@ class ApiProductFilter extends TestCase
 
     public function test_getProductsByIdCategories()
     {
-        $categories = Category::factory(5)->create();
-        $product = Product::factory()->create();
-        $product->categories()->sync($categories);
+        $product = Product::factory()->hasCategories(5)->create();
+        $categories = $product->categories;
 
         $this->getJson('/api/v1/products?' . Arr::query([
             'id_categories' => [$categories[0]->id, $categories[1]->id, $categories[2]->id],
@@ -155,17 +153,12 @@ class ApiProductFilter extends TestCase
 
     public function test_getProductsByNameCategory()
     {
-        $category = Category::factory()->create([
+        Product::factory()->hasCategories(1, [
             'name' => 'Car'
-        ]);
-        $product = Product::factory()->create();
-        $product->categories()->sync($category);
-
-        $category = Category::factory()->create([
+        ])->create();
+        Product::factory()->hasCategories(1, [
             'name' => 'Fruits'
-        ]);
-        $product = Product::factory()->create();
-        $product->categories()->sync($category);
+        ])->create();
 
         $this->getJson('/api/v1/products?' . Arr::query([
             'name_category' => 'ca',

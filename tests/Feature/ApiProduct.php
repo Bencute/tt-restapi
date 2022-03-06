@@ -20,6 +20,7 @@ class ApiProduct extends TestCase
                 'errors',
             ]);
 
+        // Не существующие категории
         $this->postJson('/api/v1/products', [
                 'name' => 'Burger',
                 'price' => 19.99,
@@ -28,6 +29,7 @@ class ApiProduct extends TestCase
             ])
             ->assertStatus(422);
 
+        // Указано меньше 2 категорий
         $this->postJson('/api/v1/products', [
                 'name' => 'Burger',
                 'price' => 19.99,
@@ -36,6 +38,7 @@ class ApiProduct extends TestCase
             ])
             ->assertStatus(422);
 
+        // Указано больше 10 категорий
         $this->postJson('/api/v1/products', [
                 'name' => 'Burger',
                 'price' => 19.99,
@@ -104,6 +107,7 @@ class ApiProduct extends TestCase
 
     public function test_getProduct()
     {
+        /** @var Product $product */
         $product = Product::factory()->create();
 
         $response = $this->getJson("/api/v1/products/{$product->id}");
@@ -126,6 +130,6 @@ class ApiProduct extends TestCase
         $response
             ->assertStatus(204);
 
-        $this->assertNotNull(Product::withTrashed()->find($product->id)->{$product->getDeletedAtColumn()});
+        $this->assertSoftDeleted(Product::withTrashed()->find($product->id));
     }
 }

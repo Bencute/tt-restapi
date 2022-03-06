@@ -15,6 +15,12 @@ class CategoryController extends Controller
         return response()->json(new CategoryCollection(Category::all()));
     }
 
+    /**
+     * Input format:
+     * {
+     *  'name': {string}, required
+     * }
+     */
     public function store(CategoryRequest $request)
     {
         $category = Category::query()->create($request->validated());
@@ -26,6 +32,12 @@ class CategoryController extends Controller
         return response()->json(new CategoryResource($category));
     }
 
+    /**
+     * Input format:
+     * {
+     *  'name': {string}, required
+     * }
+     */
     public function update(CategoryRequest $request, Category $category)
     {
         $category->updateOrFail($request->validated());

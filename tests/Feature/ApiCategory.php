@@ -57,7 +57,8 @@ class ApiCategory extends TestCase
 
     public function test_updateCategory()
     {
-        $category = Category::factory()->create();
+        /** @var Category $product */
+        $category = Category::factory()->create(['name' => 'Fruit']);
 
         $response = $this->putJson("/api/v1/categories/{$category->id}", ['name' => 'Car']);
 
@@ -87,26 +88,20 @@ class ApiCategory extends TestCase
     {
         $category = Category::factory()->create();
 
-        $response = $this->deleteJson("/api/v1/categories/{$category->id}");
-
-        $response
+        $this->deleteJson("/api/v1/categories/{$category->id}")
             ->assertStatus(204);
 
-        $this->assertNull(Category::query()->find($category->id));
+        $this->assertModelMissing($category);
     }
 
     public function test_deleteCategoryNotEmpty()
     {
         /** @var Category $category */
-        $category = Category::factory()->create();
-        $product = Product::factory()->create();
-        $category->products()->sync($product);
+        $category = Category::factory()->hasProducts(3)->create();
 
-        $response = $this->deleteJson("/api/v1/categories/{$category->id}");
-
-        $response
+        $this->deleteJson("/api/v1/categories/{$category->id}")
             ->assertStatus(400);
 
-        $this->assertNotNull(Category::query()->find($category->id));
+        $this->assertModelExists($category);
     }
 }

@@ -16,7 +16,9 @@ class ProductController extends Controller
     /**
      * Передача параметров в query string
      * Например: /api/v1/products?name=ember&price_from=40
-     * Формат запроса:
+     *
+     * Input format:
+     * {
      *  'name': {string}
      *  'price_from': {numeric}
      *  'price_to: {numeric}
@@ -24,38 +26,39 @@ class ProductController extends Controller
      *  'deleted': {bool}
      *  'id_categories': Array[{integer}]
      *  'name_category': {string}
+     * }
      */
     public function index(ApiProductFilterRequest $request)
     {
         $query = Product::query();
 
         $query->when(
-            $request->input('name'),
+            $request->validated('name'),
             fn(Builder $query, $value) => $query->where('name', 'like', '%'.$value.'%')
         );
 
         $query->when(
-            $request->input('price_from'),
+            $request->validated('price_from'),
             fn(Builder $query, $value) => $query->where('price', '>=', $value)
         );
 
         $query->when(
-            $request->input('price_to'),
+            $request->validated('price_to'),
             fn(Builder $query, $value) => $query->where('price', '<=', $value)
         );
 
         $query->when(
             $request->has('published'),
-            fn(Builder $query) => $query->where('published', $request->input('published')),
+            fn(Builder $query) => $query->where('published', $request->validated('published')),
         );
 
         $query->when(
-            $request->input('deleted'),
+            $request->validated('deleted'),
             fn(Builder $query) => $query->withTrashed()
         );
 
         $query->when(
-            $request->input('id_categories'),
+            $request->validated('id_categories'),
             fn(Builder $query, $value) => $query->whereHas(
                 'categories',
                 fn(Builder $query) => $query->whereIn('id', $value)
@@ -63,7 +66,7 @@ class ProductController extends Controller
         );
 
         $query->when(
-            $request->input('name_category'),
+            $request->validated('name_category'),
             fn(Builder $query, $value) => $query->whereHas(
                 'categories',
                 fn(Builder $query) => $query->where('name', 'like', '%'.$value.'%')
@@ -73,6 +76,15 @@ class ProductController extends Controller
         return response()->json(new ProductCollection($query->get()));
     }
 
+    /**
+     * Input format:
+     * {
+     *  'name': {string}, required
+     *  'price': {numeric}, required
+     *  'published': {bool}, required
+     *  'categories': Array[{integer}], required, size: min-2, max-10
+     * }
+     */
     public function store(ProductCreateRequest $request)
     {
         /** @var Product $product */
@@ -87,6 +99,15 @@ class ProductController extends Controller
         return response()->json(new ProductResource($product));
     }
 
+    /**
+     * Input format:
+     * {
+     *  'name': {string}
+     *  'price': {numeric}
+     *  'published': {bool}
+     *  'categories': Array[{integer}], size: min-2, max-10
+     * }
+     */
     public function update(ProductUpdateRequest $request, Product $product)
     {
         $product->updateOrFail($request->validated());
